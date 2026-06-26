@@ -3,34 +3,64 @@ import numpy as np
 import pandas as pd
 import joblib
 
-# Load trained model
-model = joblib.load("music_model.pkl")  # change filename if needed
+st.set_page_config(
+    page_title="Music Listening Predictor",
+    page_icon="🎧",
+    layout="centered"
+)
 
-st.set_page_config(page_title="Music Listening Predictor", layout="centered")
+@st.cache_resource
+def load_model():
+    return joblib.load("music_model.pkl")
+
+model = load_model()
 
 st.title("🎧 Daily Music Listening Time Predictor")
-st.write("Predict how many minutes a user listens to music daily based on behavior.")
+st.write("Predict how many minutes a user listens to music daily based on user behavior.")
 
-# Input fields
-age = st.number_input("Age", min_value=10, max_value=80, value=25)
+age = st.number_input(
+    "Age",
+    min_value=10,
+    max_value=80,
+    value=25
+)
 
-songs_per_day = st.number_input("Songs per Day", min_value=0, value=50)
+songs_per_day = st.number_input(
+    "Songs Per Day",
+    min_value=0,
+    max_value=200,
+    value=50
+)
 
-playlists_count = st.number_input("Playlists Count", min_value=0, value=10)
+playlists_count = st.number_input(
+    "Playlists Count",
+    min_value=0,
+    max_value=100,
+    value=10
+)
 
-skip_rate_pct = st.slider("Skip Rate (%)", 0, 100, 30)
+skip_rate_pct = st.slider(
+    "Skip Rate (%)",
+    min_value=0,
+    max_value=100,
+    value=30
+)
 
-# Predict button
-if st.button("Predict Listening Time"):
+if st.button("Predict"):
 
-    input_data = np.array([[age, songs_per_day, playlists_count, skip_rate_pct]])
+    input_data = pd.DataFrame(
+        [[age, songs_per_day, playlists_count, skip_rate_pct]],
+        columns=[
+            "age",
+            "songs_per_day",
+            "playlists_count",
+            "skip_rate_pct"
+        ]
+    )
 
     prediction = model.predict(input_data)[0]
 
-    st.success(f"🎯 Predicted Daily Listening Minutes: {prediction:.2f} minutes")
+    st.success(f"🎯 Predicted Daily Listening Time: {prediction:.2f} minutes")
 
-    st.write("---")
-    st.write("### Input Summary")
-    st.write(pd.DataFrame(input_data, columns=[
-        "age", "songs_per_day", "playlists_count", "skip_rate_pct"
-    ]))
+    st.subheader("Input Summary")
+    st.dataframe(input_data)
